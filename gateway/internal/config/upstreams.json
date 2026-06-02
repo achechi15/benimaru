@@ -1,0 +1,7 @@
+[
+    { 
+        "name": "metapod",
+        "prefix": "/v1/metapod",
+        "target": "localhost:50051"
+    }
+]

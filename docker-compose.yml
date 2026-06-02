@@ -1,0 +1,54 @@
+# Levanta toda la plataforma:  docker compose up --build
+
+# Variables (opcional) en un .env junto a este fichero:
+#   LLAMA_MODEL=mi-modelo.gguf      # nombre del .gguf dentro de ./models
+#   CALLBACK_URL=https://...        # destino del callback de metapod
+
+services:
+  llama:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    volumes:
+      - ./models:/models
+    command: ["-m", "/models/${LLAMA_MODEL:-model.gguf}", "--host", "0.0.0.0", "--port", "8081"]
+    restart: unless-stopped
+
+  metapod:
+    build:
+      context: ./services/metapod
+    environment:
+      GRPC_ADDR: "0.0.0.0:50051"
+      LLAMA_URL: "http://llama:8081"
+      CALLBACK_URL: "${CALLBACK_URL:-}"
+    depends_on:
+      - llama
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./gateway
+    environment:
+      GATEWAY_ADDR: ":8080"
+      GATEWAY_PROXY_TIMEOUT: "10s"
+      GATEWAY_UPSTREAMS: >-
+        [{"name":"metapod","prefix":"/v1/metapod","target":"http://metapod:50051"}]
+      # GATEWAY_API_KEY: "tu-clave"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - metapod
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  # valkey:
+  #   image: valkey/valkey:8-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - valkey-data:/data
+  #   restart: unless-stopped
+
+# volumes:
+#   valkey-data:
