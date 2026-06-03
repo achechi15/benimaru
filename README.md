@@ -190,24 +190,3 @@ Health check: `curl localhost:8080/healthz` → `ok` (200).
 3. Regístralo en `cmd/main.go`: `reg.Override("<nombre>", <nombre>.Builder)`.
 
 ---
-
-## Estado actual
-
-### ✅ Funciona
-- Gateway HTTP→gRPC para metapod (traducción vía `Override`).
-- metapod: ack inmediato + generación en background + callback con reintentos.
-- Reverse proxy genérico data-driven (para futuros servicios HTTP).
-- Middlewares: logging y API key.
-- Build de Docker para gateway y metapod; `docker-compose` para gateway + metapod + llama.
-
-### 🚧 Pendiente / por añadir
-- **Durabilidad de los jobs:** metapod usa `asyncio.create_task`; si el proceso reinicia a mitad, se pierde el trabajo y no llega el callback. Plan: **arq + Valkey** (cola persistente, reintentos, límite de concurrencia hacia llama-server, idempotencia por `id`).
-- **Valkey:** comentado en `docker-compose.yml`; reactivar cuando se implemente la cola.
-- **Seguridad del callback:** firmarlo (HMAC) para que el receptor verifique el origen.
-- **CORS:** `GATEWAY_ALLOWED_ORIGINS` se carga pero todavía no hay middleware que lo aplique (necesario si el cliente es navegador).
-- **Graceful shutdown:** el gateway usa `http.ListenAndServe` directo; migrar a `http.Server` + `Shutdown(ctx)`.
-- **profanity:** incompleto — `cmd/server/main.go` es `package profanity` (debería ser `package main`) y `cache/valkey.go` cierra el cliente al devolverlo (`defer client.Close()`) y usa `log.Fatal` en errores.
-
-### ⚠️ A revisar antes de arrancar
-- **Local:** el `gateway/.env` tiene la variable mal escrita (`GATEWAY_UPSTREAM_FILE` → debe ser `GATEWAY_UPSTREAMS_FILE`), y `upstreams.json` apunta a `metapod:50051` (sirve en Docker; en local usa `localhost:50051`).
-- **Docker:** el `target` gRPC en `GATEWAY_UPSTREAMS` debería ser `metapod:50051` sin esquema (`http://` no es un target gRPC válido); verificar que conecta.
