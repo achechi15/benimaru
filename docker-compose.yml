@@ -38,7 +38,7 @@ services:
       GATEWAY_PROXY_TIMEOUT: "10s"
       VALKEY_SERVER_URL: "valkey:6379"
       GATEWAY_UPSTREAMS: >-
-        [{"name":"metapod","prefix":"/v1/metapod","target":"http://metapod:50051"},
+        [{"name":"metapod","prefix":"/v1/metapod","target":"metapod:50051"},
          {"name":"flowmetapod","prefix":"/flow/metapod","target":"metapod:50051"},
          {"name":"profanity","prefix":"/v1/profanity","target":"profanity:50052"}]
       # GATEWAY_API_KEY: "tu-clave"
