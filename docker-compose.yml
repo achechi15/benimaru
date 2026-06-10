@@ -23,32 +23,45 @@ services:
       - llama
     restart: unless-stopped
 
+  profanity:
+    build:
+      context: ./services/profanity
+    environment:
+      GRPC_ADDR: "0.0.0.0:50052"
+    restart: unless-stopped
+
   gateway:
     build:
       context: ./gateway
     environment:
       GATEWAY_ADDR: ":8080"
       GATEWAY_PROXY_TIMEOUT: "10s"
+      VALKEY_SERVER_URL: "valkey:6379"
       GATEWAY_UPSTREAMS: >-
-        [{"name":"metapod","prefix":"/v1/metapod","target":"http://metapod:50051"}]
+        [{"name":"metapod","prefix":"/v1/metapod","target":"http://metapod:50051"},
+         {"name":"flowmetapod","prefix":"/flow/metapod","target":"metapod:50051"},
+         {"name":"profanity","prefix":"/v1/profanity","target":"profanity:50052"}]
       # GATEWAY_API_KEY: "tu-clave"
     ports:
       - "8080:8080"
     depends_on:
       - metapod
+      - profanity
+      - valkey
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 10s
       timeout: 3s
       retries: 3
-  # valkey:
-  #   image: valkey/valkey:8-alpine
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - valkey-data:/data
-  #   restart: unless-stopped
 
-# volumes:
-#   valkey-data:
+  valkey:
+    image: valkey/valkey:8-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey-data:/data
+    restart: unless-stopped
+
+volumes:
+  valkey-data:

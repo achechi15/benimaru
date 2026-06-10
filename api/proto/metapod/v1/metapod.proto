@@ -6,6 +6,8 @@ package metapod.v1;
 
 service MetapodService {
     rpc Create(CreateRequest) returns (CreateResponse);
+    rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse);
+    rpc Status(StatusRequest) returns (StatusResponse);
 }
 
 message CreateRequest {
@@ -18,4 +20,18 @@ message CreateRequest {
 message CreateResponse {
     string status = 1;
     string id = 2;
+}
+
+message AnalyzeRequest {
+    string prompt = 1;
+}
+
+message AnalyzeResponse {
+    string body = 1;
+}
+
+message StatusRequest {}
+
+message StatusResponse {
+    bool ok = 1;
 }

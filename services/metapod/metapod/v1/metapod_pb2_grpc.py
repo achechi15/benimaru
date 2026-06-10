@@ -39,12 +39,34 @@ class MetapodServiceStub:
                 request_serializer=metapod_dot_v1_dot_metapod__pb2.CreateRequest.SerializeToString,
                 response_deserializer=metapod_dot_v1_dot_metapod__pb2.CreateResponse.FromString,
                 _registered_method=True)
+        self.Analyze = channel.unary_unary(
+                '/metapod.v1.MetapodService/Analyze',
+                request_serializer=metapod_dot_v1_dot_metapod__pb2.AnalyzeRequest.SerializeToString,
+                response_deserializer=metapod_dot_v1_dot_metapod__pb2.AnalyzeResponse.FromString,
+                _registered_method=True)
+        self.Status = channel.unary_unary(
+                '/metapod.v1.MetapodService/Status',
+                request_serializer=metapod_dot_v1_dot_metapod__pb2.StatusRequest.SerializeToString,
+                response_deserializer=metapod_dot_v1_dot_metapod__pb2.StatusResponse.FromString,
+                _registered_method=True)
 
 
 class MetapodServiceServicer:
     """Missing associated documentation comment in .proto file."""
 
     def Create(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Analyze(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Status(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +79,16 @@ def add_MetapodServiceServicer_to_server(servicer, server):
                     servicer.Create,
                     request_deserializer=metapod_dot_v1_dot_metapod__pb2.CreateRequest.FromString,
                     response_serializer=metapod_dot_v1_dot_metapod__pb2.CreateResponse.SerializeToString,
+            ),
+            'Analyze': grpc.unary_unary_rpc_method_handler(
+                    servicer.Analyze,
+                    request_deserializer=metapod_dot_v1_dot_metapod__pb2.AnalyzeRequest.FromString,
+                    response_serializer=metapod_dot_v1_dot_metapod__pb2.AnalyzeResponse.SerializeToString,
+            ),
+            'Status': grpc.unary_unary_rpc_method_handler(
+                    servicer.Status,
+                    request_deserializer=metapod_dot_v1_dot_metapod__pb2.StatusRequest.FromString,
+                    response_serializer=metapod_dot_v1_dot_metapod__pb2.StatusResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +118,60 @@ class MetapodService:
             '/metapod.v1.MetapodService/Create',
             metapod_dot_v1_dot_metapod__pb2.CreateRequest.SerializeToString,
             metapod_dot_v1_dot_metapod__pb2.CreateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Analyze(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/metapod.v1.MetapodService/Analyze',
+            metapod_dot_v1_dot_metapod__pb2.AnalyzeRequest.SerializeToString,
+            metapod_dot_v1_dot_metapod__pb2.AnalyzeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Status(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/metapod.v1.MetapodService/Status',
+            metapod_dot_v1_dot_metapod__pb2.StatusRequest.SerializeToString,
+            metapod_dot_v1_dot_metapod__pb2.StatusResponse.FromString,
             options,
             channel_credentials,
             insecure,

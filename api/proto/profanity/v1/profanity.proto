@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "benimaru/gateway/internal/gen/profanity/v1;profanityv1";
+
+package profanity.v1;
+
+service ProfanityService {
+  rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse);
+}
+
+message AnalyzeRequest {
+  string text = 1;
+}
+
+message AnalyzeResponse {
+  map<string, double> probas = 1;
+}

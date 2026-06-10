@@ -24,17 +24,26 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18metapod/v1/metapod.proto\x12\nmetapod.v1\"K\n\rCreateRequest\x12\r\n\x05\x62rand\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\n\n\x02id\x18\x03 \x01(\t\x12\x0e\n\x06prompt\x18\x04 \x01(\t\",\n\x0e\x43reateResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t2Q\n\x0eMetapodService\x12?\n\x06\x43reate\x12\x19.metapod.v1.CreateRequest\x1a\x1a.metapod.v1.CreateResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18metapod/v1/metapod.proto\x12\nmetapod.v1\"K\n\rCreateRequest\x12\r\n\x05\x62rand\x18\x01 \x01(\t\x12\x0f\n\x07\x63hannel\x18\x02 \x01(\t\x12\n\n\x02id\x18\x03 \x01(\t\x12\x0e\n\x06prompt\x18\x04 \x01(\t\",\n\x0e\x43reateResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\" \n\x0e\x41nalyzeRequest\x12\x0e\n\x06prompt\x18\x01 \x01(\t\"\x1f\n\x0f\x41nalyzeResponse\x12\x0c\n\x04\x62ody\x18\x01 \x01(\t\"\x0f\n\rStatusRequest\"\x1c\n\x0eStatusResponse\x12\n\n\x02ok\x18\x01 \x01(\x08\x32\xd6\x01\n\x0eMetapodService\x12?\n\x06\x43reate\x12\x19.metapod.v1.CreateRequest\x1a\x1a.metapod.v1.CreateResponse\x12\x42\n\x07\x41nalyze\x12\x1a.metapod.v1.AnalyzeRequest\x1a\x1b.metapod.v1.AnalyzeResponse\x12?\n\x06Status\x12\x19.metapod.v1.StatusRequest\x1a\x1a.metapod.v1.StatusResponseB4Z2benimaru/gateway/internal/gen/metapod/v1;metapodv1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'metapod.v1.metapod_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
-  DESCRIPTOR._loaded_options = None
+  _globals['DESCRIPTOR']._loaded_options = None
+  _globals['DESCRIPTOR']._serialized_options = b'Z2benimaru/gateway/internal/gen/metapod/v1;metapodv1'
   _globals['_CREATEREQUEST']._serialized_start=40
   _globals['_CREATEREQUEST']._serialized_end=115
   _globals['_CREATERESPONSE']._serialized_start=117
   _globals['_CREATERESPONSE']._serialized_end=161
-  _globals['_METAPODSERVICE']._serialized_start=163
-  _globals['_METAPODSERVICE']._serialized_end=244
+  _globals['_ANALYZEREQUEST']._serialized_start=163
+  _globals['_ANALYZEREQUEST']._serialized_end=195
+  _globals['_ANALYZERESPONSE']._serialized_start=197
+  _globals['_ANALYZERESPONSE']._serialized_end=228
+  _globals['_STATUSREQUEST']._serialized_start=230
+  _globals['_STATUSREQUEST']._serialized_end=245
+  _globals['_STATUSRESPONSE']._serialized_start=247
+  _globals['_STATUSRESPONSE']._serialized_end=275
+  _globals['_METAPODSERVICE']._serialized_start=278
+  _globals['_METAPODSERVICE']._serialized_end=492
 # @@protoc_insertion_point(module_scope)

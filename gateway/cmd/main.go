@@ -4,7 +4,9 @@ import (
 	config "benimaru/gateway/internal/config"
 	"benimaru/gateway/internal/middleware"
 	"benimaru/gateway/internal/routes"
+	"benimaru/gateway/internal/services/flowmetapod"
 	"benimaru/gateway/internal/services/metapod"
+	"benimaru/gateway/internal/services/profanity"
 	"log/slog"
 	"net/http"
 	"os"
@@ -24,9 +26,14 @@ func main() {
 
 	if cfg.APIKey != "" {
 		reg.For("metapod", middleware.APIKey(cfg.APIKey))
+		reg.For("profanity", middleware.APIKey(cfg.APIKey))
 	}
 
 	reg.Override("metapod", metapod.Builder)
+	reg.Override("profanity", profanity.Builder)
+
+	// flowmetapod: variante síncrona de metapod, deliberadamente sin auth.
+	reg.Override("flowmetapod", flowmetapod.Builder)
 
 	// reg.Override("foo", func(u upstream.Upstream, d time.Duration) (http.Handler, error) {
 	//     mux := http.NewServeMux()

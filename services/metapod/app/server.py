@@ -5,7 +5,7 @@ from grpc_reflection.v1alpha import reflection
 from metapod.v1 import metapod_pb2 as pb
 from metapod.v1 import metapod_pb2_grpc as pb_grpc
 from app.config import settings
-from app.flow import run_flow
+from app.flow import run_flow, generate
 
 _task = set()
 
@@ -15,6 +15,17 @@ class MetapodService(pb_grpc.MetapodServiceServicer):
         _task.add(task)
         task.add_done_callback(_task.discard)
         return pb.CreateResponse(status="accepted", id=request.id)
+
+    async def Analyze(self, request, context):
+        # Síncrono: genera con el LLM y responde en la misma llamada.
+        try:
+            body = await generate(request.prompt)
+        except Exception as e:
+            await context.abort(grpc.StatusCode.INTERNAL, str(e))
+        return pb.AnalyzeResponse(body=body)
+
+    async def Status(self, request, context):
+        return pb.StatusResponse(ok=True)
 
 async def serve():
     server = grpc.aio.server()

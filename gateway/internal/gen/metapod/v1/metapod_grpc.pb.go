@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MetapodService_Create_FullMethodName = "/metapod.v1.MetapodService/Create"
+	MetapodService_Create_FullMethodName  = "/metapod.v1.MetapodService/Create"
+	MetapodService_Analyze_FullMethodName = "/metapod.v1.MetapodService/Analyze"
+	MetapodService_Status_FullMethodName  = "/metapod.v1.MetapodService/Status"
 )
 
 // MetapodServiceClient is the client API for MetapodService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetapodServiceClient interface {
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
+	Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeResponse, error)
+	Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 }
 
 type metapodServiceClient struct {
@@ -47,11 +51,33 @@ func (c *metapodServiceClient) Create(ctx context.Context, in *CreateRequest, op
 	return out, nil
 }
 
+func (c *metapodServiceClient) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AnalyzeResponse)
+	err := c.cc.Invoke(ctx, MetapodService_Analyze_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metapodServiceClient) Status(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StatusResponse)
+	err := c.cc.Invoke(ctx, MetapodService_Status_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MetapodServiceServer is the server API for MetapodService service.
 // All implementations must embed UnimplementedMetapodServiceServer
 // for forward compatibility.
 type MetapodServiceServer interface {
 	Create(context.Context, *CreateRequest) (*CreateResponse, error)
+	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeResponse, error)
+	Status(context.Context, *StatusRequest) (*StatusResponse, error)
 	mustEmbedUnimplementedMetapodServiceServer()
 }
 
@@ -64,6 +90,12 @@ type UnimplementedMetapodServiceServer struct{}
 
 func (UnimplementedMetapodServiceServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedMetapodServiceServer) Analyze(context.Context, *AnalyzeRequest) (*AnalyzeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Analyze not implemented")
+}
+func (UnimplementedMetapodServiceServer) Status(context.Context, *StatusRequest) (*StatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Status not implemented")
 }
 func (UnimplementedMetapodServiceServer) mustEmbedUnimplementedMetapodServiceServer() {}
 func (UnimplementedMetapodServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +136,42 @@ func _MetapodService_Create_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MetapodService_Analyze_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnalyzeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetapodServiceServer).Analyze(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MetapodService_Analyze_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetapodServiceServer).Analyze(ctx, req.(*AnalyzeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetapodService_Status_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetapodServiceServer).Status(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MetapodService_Status_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetapodServiceServer).Status(ctx, req.(*StatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MetapodService_ServiceDesc is the grpc.ServiceDesc for MetapodService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +182,14 @@ var MetapodService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _MetapodService_Create_Handler,
+		},
+		{
+			MethodName: "Analyze",
+			Handler:    _MetapodService_Analyze_Handler,
+		},
+		{
+			MethodName: "Status",
+			Handler:    _MetapodService_Status_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

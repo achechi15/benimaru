@@ -1,7 +1,17 @@
 [
-    { 
+    {
         "name": "metapod",
         "prefix": "/v1/metapod",
         "target": "localhost:50051"
+    },
+    {
+        "name": "flowmetapod",
+        "prefix": "/flow/metapod",
+        "target": "localhost:50051"
+    },
+    {
+        "name": "profanity",
+        "prefix": "/v1/profanity",
+        "target": "localhost:50052"
     }
 ]

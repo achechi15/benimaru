@@ -141,6 +141,174 @@ func (x *CreateResponse) GetId() string {
 	return ""
 }
 
+type AnalyzeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Prompt        string                 `protobuf:"bytes,1,opt,name=prompt,proto3" json:"prompt,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnalyzeRequest) Reset() {
+	*x = AnalyzeRequest{}
+	mi := &file_metapod_v1_metapod_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnalyzeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnalyzeRequest) ProtoMessage() {}
+
+func (x *AnalyzeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_metapod_v1_metapod_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnalyzeRequest.ProtoReflect.Descriptor instead.
+func (*AnalyzeRequest) Descriptor() ([]byte, []int) {
+	return file_metapod_v1_metapod_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AnalyzeRequest) GetPrompt() string {
+	if x != nil {
+		return x.Prompt
+	}
+	return ""
+}
+
+type AnalyzeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Body          string                 `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnalyzeResponse) Reset() {
+	*x = AnalyzeResponse{}
+	mi := &file_metapod_v1_metapod_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnalyzeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnalyzeResponse) ProtoMessage() {}
+
+func (x *AnalyzeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_metapod_v1_metapod_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnalyzeResponse.ProtoReflect.Descriptor instead.
+func (*AnalyzeResponse) Descriptor() ([]byte, []int) {
+	return file_metapod_v1_metapod_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AnalyzeResponse) GetBody() string {
+	if x != nil {
+		return x.Body
+	}
+	return ""
+}
+
+type StatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusRequest) Reset() {
+	*x = StatusRequest{}
+	mi := &file_metapod_v1_metapod_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusRequest) ProtoMessage() {}
+
+func (x *StatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_metapod_v1_metapod_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusRequest.ProtoReflect.Descriptor instead.
+func (*StatusRequest) Descriptor() ([]byte, []int) {
+	return file_metapod_v1_metapod_proto_rawDescGZIP(), []int{4}
+}
+
+type StatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatusResponse) Reset() {
+	*x = StatusResponse{}
+	mi := &file_metapod_v1_metapod_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusResponse) ProtoMessage() {}
+
+func (x *StatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_metapod_v1_metapod_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusResponse.ProtoReflect.Descriptor instead.
+func (*StatusResponse) Descriptor() ([]byte, []int) {
+	return file_metapod_v1_metapod_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StatusResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
 var File_metapod_v1_metapod_proto protoreflect.FileDescriptor
 
 const file_metapod_v1_metapod_proto_rawDesc = "" +
@@ -154,9 +322,18 @@ const file_metapod_v1_metapod_proto_rawDesc = "" +
 	"\x06prompt\x18\x04 \x01(\tR\x06prompt\"8\n" +
 	"\x0eCreateResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id2Q\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\"(\n" +
+	"\x0eAnalyzeRequest\x12\x16\n" +
+	"\x06prompt\x18\x01 \x01(\tR\x06prompt\"%\n" +
+	"\x0fAnalyzeResponse\x12\x12\n" +
+	"\x04body\x18\x01 \x01(\tR\x04body\"\x0f\n" +
+	"\rStatusRequest\" \n" +
+	"\x0eStatusResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok2\xd6\x01\n" +
 	"\x0eMetapodService\x12?\n" +
-	"\x06Create\x12\x19.metapod.v1.CreateRequest\x1a\x1a.metapod.v1.CreateResponseB4Z2benimaru/gateway/internal/gen/metapod/v1;metapodv1b\x06proto3"
+	"\x06Create\x12\x19.metapod.v1.CreateRequest\x1a\x1a.metapod.v1.CreateResponse\x12B\n" +
+	"\aAnalyze\x12\x1a.metapod.v1.AnalyzeRequest\x1a\x1b.metapod.v1.AnalyzeResponse\x12?\n" +
+	"\x06Status\x12\x19.metapod.v1.StatusRequest\x1a\x1a.metapod.v1.StatusResponseB4Z2benimaru/gateway/internal/gen/metapod/v1;metapodv1b\x06proto3"
 
 var (
 	file_metapod_v1_metapod_proto_rawDescOnce sync.Once
@@ -170,16 +347,24 @@ func file_metapod_v1_metapod_proto_rawDescGZIP() []byte {
 	return file_metapod_v1_metapod_proto_rawDescData
 }
 
-var file_metapod_v1_metapod_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_metapod_v1_metapod_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_metapod_v1_metapod_proto_goTypes = []any{
-	(*CreateRequest)(nil),  // 0: metapod.v1.CreateRequest
-	(*CreateResponse)(nil), // 1: metapod.v1.CreateResponse
+	(*CreateRequest)(nil),   // 0: metapod.v1.CreateRequest
+	(*CreateResponse)(nil),  // 1: metapod.v1.CreateResponse
+	(*AnalyzeRequest)(nil),  // 2: metapod.v1.AnalyzeRequest
+	(*AnalyzeResponse)(nil), // 3: metapod.v1.AnalyzeResponse
+	(*StatusRequest)(nil),   // 4: metapod.v1.StatusRequest
+	(*StatusResponse)(nil),  // 5: metapod.v1.StatusResponse
 }
 var file_metapod_v1_metapod_proto_depIdxs = []int32{
 	0, // 0: metapod.v1.MetapodService.Create:input_type -> metapod.v1.CreateRequest
-	1, // 1: metapod.v1.MetapodService.Create:output_type -> metapod.v1.CreateResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: metapod.v1.MetapodService.Analyze:input_type -> metapod.v1.AnalyzeRequest
+	4, // 2: metapod.v1.MetapodService.Status:input_type -> metapod.v1.StatusRequest
+	1, // 3: metapod.v1.MetapodService.Create:output_type -> metapod.v1.CreateResponse
+	3, // 4: metapod.v1.MetapodService.Analyze:output_type -> metapod.v1.AnalyzeResponse
+	5, // 5: metapod.v1.MetapodService.Status:output_type -> metapod.v1.StatusResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -196,7 +381,7 @@ func file_metapod_v1_metapod_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_metapod_v1_metapod_proto_rawDesc), len(file_metapod_v1_metapod_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
