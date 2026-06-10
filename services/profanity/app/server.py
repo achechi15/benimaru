@@ -20,7 +20,7 @@ class ProfanityService(pb_grpc.ProfanityServiceServicer):
 
 async def serve():
     batcher = Batcher(
-        lang=settings.lang,
+        lang=settings.analyzer_lang,
         max_batch=settings.max_batch,
         max_delay=settings.max_delay,
         workers=settings.max_workers,
