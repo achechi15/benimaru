@@ -9,7 +9,7 @@ services:
     image: ghcr.io/ggml-org/llama.cpp:server
     volumes:
       - ./models:/models
-    command: ["-m", "/models/${LLAMA_MODEL:-model.gguf}", "--host", "0.0.0.0", "--port", "8081"]
+    command: ["-m", "/models/${LLAMA_MODEL:-model.gguf}", "--host", "0.0.0.0", "--port", "8081", "--parallel", "5", "-c", "8192", "-ngl", "99"]
     restart: unless-stopped
 
   metapod:
