@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -31,12 +32,15 @@ func Builder(u upstream.Upstream, _ time.Duration) (http.Handler, error) {
 	}
 	client := profanityv1.NewProfanityServiceClient(conn)
 
-	// Caché opcional: si no hay VALKEY_SERVER_URL, el handler funciona sin caché.
+	// Caché best-effort: si no hay VALKEY_SERVER_URL o Valkey no está disponible,
+	// el handler funciona igual sin caché (no debe tumbar el arranque del gateway).
 	var cache valkey.Client
 	if addr := os.Getenv("VALKEY_SERVER_URL"); addr != "" {
-		cache, err = valkey.NewClient(valkey.ClientOption{InitAddress: []string{addr}})
-		if err != nil {
-			return nil, err
+		c, cerr := valkey.NewClient(valkey.ClientOption{InitAddress: []string{addr}})
+		if cerr != nil {
+			slog.Warn("valkey no disponible, profanity arranca sin caché", "err", cerr, "addr", addr)
+		} else {
+			cache = c
 		}
 	}
 
