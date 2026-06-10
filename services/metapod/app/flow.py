@@ -1,15 +1,12 @@
 import asyncio
 import httpx
 from app.config import settings
+from app.pipeline import run_pipeline
 
 async def generate(prompt: str) -> str:
-    async with httpx.AsyncClient(timeout=None) as client:
-        r = await client.post(
-            f"{settings.llama_url}/completion",
-            json={"prompt": prompt, "stream": False}
-        )
-        r.raise_for_status()
-        return r.json()["content"]
+    # El pipeline (Gemini -> llama -> Gemini) es bloqueante; lo lanzamos en un
+    # hilo para no bloquear el event loop de grpc.aio.
+    return await asyncio.get_running_loop().run_in_executor(None, run_pipeline, prompt)
 
 async def send_callback(req, body: str, ok: bool):
     if not settings.callback_url:

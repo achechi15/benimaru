@@ -3,3 +3,5 @@ grpcio-tools
 grpcio-reflection
 httpx
 pydantic-settings
+google-genai
+python-dotenv
