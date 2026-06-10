@@ -16,6 +16,7 @@ services:
     build:
       context: ./services/metapod
     environment:
+      PYTHONUNBUFFERED: "1"
       GRPC_ADDR: "0.0.0.0:50051"
       LLAMA_URL: "http://llama:8081"
       CALLBACK_URL: "${CALLBACK_URL:-}"
@@ -28,6 +29,7 @@ services:
     build:
       context: ./services/profanity
     environment:
+      PYTHONUNBUFFERED: "1"
       GRPC_ADDR: "0.0.0.0:50052"
     restart: unless-stopped
 

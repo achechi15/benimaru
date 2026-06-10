@@ -42,7 +42,7 @@ func Builder(u upstream.Upstream, _ time.Duration) (http.Handler, error) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]string{"body": resp.GetBody()})
+		_ = json.NewEncoder(w).Encode(map[string]string{"flow": resp.GetBody()})
 	})
 
 	mux.HandleFunc("GET "+u.Prefix+"/status", func(w http.ResponseWriter, r *http.Request) {
