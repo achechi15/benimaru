@@ -22,7 +22,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	reg := routes.NewRegistry().Use(middleware.Logging())
+	reg := routes.NewRegistry().Use(middleware.Logging(), middleware.CORS(cfg.AllowedOrigins))
 
 	if cfg.APIKey != "" {
 		reg.For("metapod", middleware.APIKey(cfg.APIKey))
