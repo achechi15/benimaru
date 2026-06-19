@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProfanityService_Analyze_FullMethodName = "/profanity.v1.ProfanityService/Analyze"
+	ProfanityService_AnalyzeText_FullMethodName  = "/profanity.v1.ProfanityService/AnalyzeText"
+	ProfanityService_AnalyzeImage_FullMethodName = "/profanity.v1.ProfanityService/AnalyzeImage"
 )
 
 // ProfanityServiceClient is the client API for ProfanityService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProfanityServiceClient interface {
-	Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeResponse, error)
+	AnalyzeText(ctx context.Context, in *AnalyzeTextRequest, opts ...grpc.CallOption) (*AnalyzeTextResponse, error)
+	AnalyzeImage(ctx context.Context, in *AnalyzeImageRequest, opts ...grpc.CallOption) (*AnalyzeImageResponse, error)
 }
 
 type profanityServiceClient struct {
@@ -37,10 +39,20 @@ func NewProfanityServiceClient(cc grpc.ClientConnInterface) ProfanityServiceClie
 	return &profanityServiceClient{cc}
 }
 
-func (c *profanityServiceClient) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeResponse, error) {
+func (c *profanityServiceClient) AnalyzeText(ctx context.Context, in *AnalyzeTextRequest, opts ...grpc.CallOption) (*AnalyzeTextResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AnalyzeResponse)
-	err := c.cc.Invoke(ctx, ProfanityService_Analyze_FullMethodName, in, out, cOpts...)
+	out := new(AnalyzeTextResponse)
+	err := c.cc.Invoke(ctx, ProfanityService_AnalyzeText_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profanityServiceClient) AnalyzeImage(ctx context.Context, in *AnalyzeImageRequest, opts ...grpc.CallOption) (*AnalyzeImageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AnalyzeImageResponse)
+	err := c.cc.Invoke(ctx, ProfanityService_AnalyzeImage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +63,8 @@ func (c *profanityServiceClient) Analyze(ctx context.Context, in *AnalyzeRequest
 // All implementations must embed UnimplementedProfanityServiceServer
 // for forward compatibility.
 type ProfanityServiceServer interface {
-	Analyze(context.Context, *AnalyzeRequest) (*AnalyzeResponse, error)
+	AnalyzeText(context.Context, *AnalyzeTextRequest) (*AnalyzeTextResponse, error)
+	AnalyzeImage(context.Context, *AnalyzeImageRequest) (*AnalyzeImageResponse, error)
 	mustEmbedUnimplementedProfanityServiceServer()
 }
 
@@ -62,8 +75,11 @@ type ProfanityServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProfanityServiceServer struct{}
 
-func (UnimplementedProfanityServiceServer) Analyze(context.Context, *AnalyzeRequest) (*AnalyzeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Analyze not implemented")
+func (UnimplementedProfanityServiceServer) AnalyzeText(context.Context, *AnalyzeTextRequest) (*AnalyzeTextResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AnalyzeText not implemented")
+}
+func (UnimplementedProfanityServiceServer) AnalyzeImage(context.Context, *AnalyzeImageRequest) (*AnalyzeImageResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AnalyzeImage not implemented")
 }
 func (UnimplementedProfanityServiceServer) mustEmbedUnimplementedProfanityServiceServer() {}
 func (UnimplementedProfanityServiceServer) testEmbeddedByValue()                          {}
@@ -86,20 +102,38 @@ func RegisterProfanityServiceServer(s grpc.ServiceRegistrar, srv ProfanityServic
 	s.RegisterService(&ProfanityService_ServiceDesc, srv)
 }
 
-func _ProfanityService_Analyze_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AnalyzeRequest)
+func _ProfanityService_AnalyzeText_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnalyzeTextRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProfanityServiceServer).Analyze(ctx, in)
+		return srv.(ProfanityServiceServer).AnalyzeText(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProfanityService_Analyze_FullMethodName,
+		FullMethod: ProfanityService_AnalyzeText_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfanityServiceServer).Analyze(ctx, req.(*AnalyzeRequest))
+		return srv.(ProfanityServiceServer).AnalyzeText(ctx, req.(*AnalyzeTextRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProfanityService_AnalyzeImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnalyzeImageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfanityServiceServer).AnalyzeImage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfanityService_AnalyzeImage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfanityServiceServer).AnalyzeImage(ctx, req.(*AnalyzeImageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +146,12 @@ var ProfanityService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ProfanityServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Analyze",
-			Handler:    _ProfanityService_Analyze_Handler,
+			MethodName: "AnalyzeText",
+			Handler:    _ProfanityService_AnalyzeText_Handler,
+		},
+		{
+			MethodName: "AnalyzeImage",
+			Handler:    _ProfanityService_AnalyzeImage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

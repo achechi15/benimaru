@@ -5,13 +5,22 @@ option go_package = "benimaru/gateway/internal/gen/profanity/v1;profanityv1";
 package profanity.v1;
 
 service ProfanityService {
-  rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse);
+  rpc AnalyzeText(AnalyzeTextRequest) returns (AnalyzeTextResponse);
+  rpc AnalyzeImage(AnalyzeImageRequest) returns (AnalyzeImageResponse);
 }
 
-message AnalyzeRequest {
+message AnalyzeTextRequest {
   string text = 1;
 }
 
-message AnalyzeResponse {
+message AnalyzeTextResponse {
   map<string, double> probas = 1;
+}
+
+message AnalyzeImageRequest {
+  string url = 1;
+}
+
+message AnalyzeImageResponse {
+  bool profanity_check = 1;
 }

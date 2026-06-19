@@ -5,10 +5,10 @@ import (
 	"benimaru/gateway/internal/upstream"
 	"context"
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/valkey-io/valkey-go"
@@ -18,9 +18,8 @@ import (
 )
 
 type incomingReq struct {
-	Type    string `json:"type"`
-	Body    string `json:"body,omitempty"`
-	Caption string `json:"caption,omitempty"`
+	Text string `json:"text,omitempty"`
+	URL  string `json:"url,omitempty"`
 }
 
 const cacheTTL = 24 * time.Hour
@@ -56,35 +55,80 @@ func Builder(u upstream.Upstream, _ time.Duration) (http.Handler, error) {
 			http.Error(w, "invalid json", http.StatusBadRequest)
 			return
 		}
-		text, err := extractText(in)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+
+		hasText := in.Text != ""
+		hasURL := in.URL != ""
+		if !hasText && !hasURL {
+			http.Error(w, "falta 'text' o 'url'", http.StatusBadRequest)
 			return
 		}
 
-		// singleflight: textos idénticos concurrentes = una sola resolución.
-		v, err, _ := group.Do(text, func() (any, error) {
-			return analyze(r.Context(), client, cache, text)
+		// singleflight: peticiones idénticas concurrentes = una sola resolución.
+		runText := func() ([]byte, error) {
+			v, err, _ := group.Do(in.Text, func() (any, error) {
+				return analyze(r.Context(), client, cache, in.Text)
+			})
+			if err != nil {
+				return nil, err
+			}
+			return v.([]byte), nil
+		}
+		runImage := func() ([]byte, error) {
+			v, err, _ := group.Do("img:"+in.URL, func() (any, error) {
+				return analyzeImage(r.Context(), client, cache, in.URL)
+			})
+			if err != nil {
+				return nil, err
+			}
+			return v.([]byte), nil
+		}
+
+		// Solo uno de los dos: respuesta directa (forma simple).
+		if hasText != hasURL {
+			run := runText
+			if hasURL {
+				run = runImage
+			}
+			out, err := run()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadGateway)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write(out)
+			return
+		}
+
+		// Ambos: se analizan en paralelo y se combinan en {text, image}.
+		var (
+			textOut, imgOut []byte
+			textErr, imgErr error
+			wg              sync.WaitGroup
+		)
+		wg.Add(2)
+		go func() { defer wg.Done(); textOut, textErr = runText() }()
+		go func() { defer wg.Done(); imgOut, imgErr = runImage() }()
+		wg.Wait()
+		if textErr != nil {
+			http.Error(w, textErr.Error(), http.StatusBadGateway)
+			return
+		}
+		if imgErr != nil {
+			http.Error(w, imgErr.Error(), http.StatusBadGateway)
+			return
+		}
+
+		combined, err := json.Marshal(map[string]json.RawMessage{
+			"text":  textOut,
+			"image": imgOut,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(v.([]byte))
+		_, _ = w.Write(combined)
 	}), nil
-}
-
-func extractText(in incomingReq) (string, error) {
-	switch in.Type {
-	case "TEXT":
-		return in.Body, nil
-	case "IMAGE", "VIDEO":
-		return in.Caption, nil
-	default:
-		return "", errors.New("tipo no soportado: " + in.Type)
-	}
 }
 
 func analyze(ctx context.Context, client profanityv1.ProfanityServiceClient, cache valkey.Client, text string) ([]byte, error) {
@@ -94,7 +138,7 @@ func analyze(ctx context.Context, client profanityv1.ProfanityServiceClient, cac
 		}
 	}
 
-	resp, err := client.Analyze(ctx, &profanityv1.AnalyzeRequest{Text: text})
+	resp, err := client.AnalyzeText(ctx, &profanityv1.AnalyzeTextRequest{Text: text})
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +149,29 @@ func analyze(ctx context.Context, client profanityv1.ProfanityServiceClient, cac
 
 	if cache != nil {
 		_ = cache.Do(ctx, cache.B().Set().Key(text).Value(string(out)).Ex(cacheTTL).Build()).Error()
+	}
+	return out, nil
+}
+
+func analyzeImage(ctx context.Context, client profanityv1.ProfanityServiceClient, cache valkey.Client, url string) ([]byte, error) {
+	cacheKey := "img:" + url
+	if cache != nil {
+		if val, err := cache.Do(ctx, cache.B().Get().Key(cacheKey).Build()).ToString(); err == nil {
+			return []byte(val), nil // hit
+		}
+	}
+
+	resp, err := client.AnalyzeImage(ctx, &profanityv1.AnalyzeImageRequest{Url: url})
+	if err != nil {
+		return nil, err
+	}
+	out, err := json.Marshal(map[string]bool{"profanity_check": resp.GetProfanityCheck()})
+	if err != nil {
+		return nil, err
+	}
+
+	if cache != nil {
+		_ = cache.Do(ctx, cache.B().Set().Key(cacheKey).Value(string(out)).Ex(cacheTTL).Build()).Error()
 	}
 	return out, nil
 }

@@ -21,27 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type AnalyzeRequest struct {
+type AnalyzeTextRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AnalyzeRequest) Reset() {
-	*x = AnalyzeRequest{}
+func (x *AnalyzeTextRequest) Reset() {
+	*x = AnalyzeTextRequest{}
 	mi := &file_profanity_v1_profanity_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AnalyzeRequest) String() string {
+func (x *AnalyzeTextRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AnalyzeRequest) ProtoMessage() {}
+func (*AnalyzeTextRequest) ProtoMessage() {}
 
-func (x *AnalyzeRequest) ProtoReflect() protoreflect.Message {
+func (x *AnalyzeTextRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_profanity_v1_profanity_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,39 +53,39 @@ func (x *AnalyzeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AnalyzeRequest.ProtoReflect.Descriptor instead.
-func (*AnalyzeRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AnalyzeTextRequest.ProtoReflect.Descriptor instead.
+func (*AnalyzeTextRequest) Descriptor() ([]byte, []int) {
 	return file_profanity_v1_profanity_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *AnalyzeRequest) GetText() string {
+func (x *AnalyzeTextRequest) GetText() string {
 	if x != nil {
 		return x.Text
 	}
 	return ""
 }
 
-type AnalyzeResponse struct {
+type AnalyzeTextResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Probas        map[string]float64     `protobuf:"bytes,1,rep,name=probas,proto3" json:"probas,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AnalyzeResponse) Reset() {
-	*x = AnalyzeResponse{}
+func (x *AnalyzeTextResponse) Reset() {
+	*x = AnalyzeTextResponse{}
 	mi := &file_profanity_v1_profanity_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AnalyzeResponse) String() string {
+func (x *AnalyzeTextResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AnalyzeResponse) ProtoMessage() {}
+func (*AnalyzeTextResponse) ProtoMessage() {}
 
-func (x *AnalyzeResponse) ProtoReflect() protoreflect.Message {
+func (x *AnalyzeTextResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_profanity_v1_profanity_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -97,32 +97,125 @@ func (x *AnalyzeResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AnalyzeResponse.ProtoReflect.Descriptor instead.
-func (*AnalyzeResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AnalyzeTextResponse.ProtoReflect.Descriptor instead.
+func (*AnalyzeTextResponse) Descriptor() ([]byte, []int) {
 	return file_profanity_v1_profanity_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *AnalyzeResponse) GetProbas() map[string]float64 {
+func (x *AnalyzeTextResponse) GetProbas() map[string]float64 {
 	if x != nil {
 		return x.Probas
 	}
 	return nil
 }
 
+type AnalyzeImageRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnalyzeImageRequest) Reset() {
+	*x = AnalyzeImageRequest{}
+	mi := &file_profanity_v1_profanity_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnalyzeImageRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnalyzeImageRequest) ProtoMessage() {}
+
+func (x *AnalyzeImageRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_profanity_v1_profanity_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnalyzeImageRequest.ProtoReflect.Descriptor instead.
+func (*AnalyzeImageRequest) Descriptor() ([]byte, []int) {
+	return file_profanity_v1_profanity_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AnalyzeImageRequest) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+type AnalyzeImageResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ProfanityCheck bool                   `protobuf:"varint,1,opt,name=profanity_check,json=profanityCheck,proto3" json:"profanity_check,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AnalyzeImageResponse) Reset() {
+	*x = AnalyzeImageResponse{}
+	mi := &file_profanity_v1_profanity_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnalyzeImageResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnalyzeImageResponse) ProtoMessage() {}
+
+func (x *AnalyzeImageResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_profanity_v1_profanity_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnalyzeImageResponse.ProtoReflect.Descriptor instead.
+func (*AnalyzeImageResponse) Descriptor() ([]byte, []int) {
+	return file_profanity_v1_profanity_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AnalyzeImageResponse) GetProfanityCheck() bool {
+	if x != nil {
+		return x.ProfanityCheck
+	}
+	return false
+}
+
 var File_profanity_v1_profanity_proto protoreflect.FileDescriptor
 
 const file_profanity_v1_profanity_proto_rawDesc = "" +
 	"\n" +
-	"\x1cprofanity/v1/profanity.proto\x12\fprofanity.v1\"$\n" +
-	"\x0eAnalyzeRequest\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"\x8f\x01\n" +
-	"\x0fAnalyzeResponse\x12A\n" +
-	"\x06probas\x18\x01 \x03(\v2).profanity.v1.AnalyzeResponse.ProbasEntryR\x06probas\x1a9\n" +
+	"\x1cprofanity/v1/profanity.proto\x12\fprofanity.v1\"(\n" +
+	"\x12AnalyzeTextRequest\x12\x12\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\"\x97\x01\n" +
+	"\x13AnalyzeTextResponse\x12E\n" +
+	"\x06probas\x18\x01 \x03(\v2-.profanity.v1.AnalyzeTextResponse.ProbasEntryR\x06probas\x1a9\n" +
 	"\vProbasEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x012Z\n" +
-	"\x10ProfanityService\x12F\n" +
-	"\aAnalyze\x12\x1c.profanity.v1.AnalyzeRequest\x1a\x1d.profanity.v1.AnalyzeResponseB8Z6benimaru/gateway/internal/gen/profanity/v1;profanityv1b\x06proto3"
+	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"'\n" +
+	"\x13AnalyzeImageRequest\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\"?\n" +
+	"\x14AnalyzeImageResponse\x12'\n" +
+	"\x0fprofanity_check\x18\x01 \x01(\bR\x0eprofanityCheck2\xbd\x01\n" +
+	"\x10ProfanityService\x12R\n" +
+	"\vAnalyzeText\x12 .profanity.v1.AnalyzeTextRequest\x1a!.profanity.v1.AnalyzeTextResponse\x12U\n" +
+	"\fAnalyzeImage\x12!.profanity.v1.AnalyzeImageRequest\x1a\".profanity.v1.AnalyzeImageResponseB8Z6benimaru/gateway/internal/gen/profanity/v1;profanityv1b\x06proto3"
 
 var (
 	file_profanity_v1_profanity_proto_rawDescOnce sync.Once
@@ -136,18 +229,22 @@ func file_profanity_v1_profanity_proto_rawDescGZIP() []byte {
 	return file_profanity_v1_profanity_proto_rawDescData
 }
 
-var file_profanity_v1_profanity_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_profanity_v1_profanity_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_profanity_v1_profanity_proto_goTypes = []any{
-	(*AnalyzeRequest)(nil),  // 0: profanity.v1.AnalyzeRequest
-	(*AnalyzeResponse)(nil), // 1: profanity.v1.AnalyzeResponse
-	nil,                     // 2: profanity.v1.AnalyzeResponse.ProbasEntry
+	(*AnalyzeTextRequest)(nil),   // 0: profanity.v1.AnalyzeTextRequest
+	(*AnalyzeTextResponse)(nil),  // 1: profanity.v1.AnalyzeTextResponse
+	(*AnalyzeImageRequest)(nil),  // 2: profanity.v1.AnalyzeImageRequest
+	(*AnalyzeImageResponse)(nil), // 3: profanity.v1.AnalyzeImageResponse
+	nil,                          // 4: profanity.v1.AnalyzeTextResponse.ProbasEntry
 }
 var file_profanity_v1_profanity_proto_depIdxs = []int32{
-	2, // 0: profanity.v1.AnalyzeResponse.probas:type_name -> profanity.v1.AnalyzeResponse.ProbasEntry
-	0, // 1: profanity.v1.ProfanityService.Analyze:input_type -> profanity.v1.AnalyzeRequest
-	1, // 2: profanity.v1.ProfanityService.Analyze:output_type -> profanity.v1.AnalyzeResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
+	4, // 0: profanity.v1.AnalyzeTextResponse.probas:type_name -> profanity.v1.AnalyzeTextResponse.ProbasEntry
+	0, // 1: profanity.v1.ProfanityService.AnalyzeText:input_type -> profanity.v1.AnalyzeTextRequest
+	2, // 2: profanity.v1.ProfanityService.AnalyzeImage:input_type -> profanity.v1.AnalyzeImageRequest
+	1, // 3: profanity.v1.ProfanityService.AnalyzeText:output_type -> profanity.v1.AnalyzeTextResponse
+	3, // 4: profanity.v1.ProfanityService.AnalyzeImage:output_type -> profanity.v1.AnalyzeImageResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -164,7 +261,7 @@ func file_profanity_v1_profanity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_profanity_v1_profanity_proto_rawDesc), len(file_profanity_v1_profanity_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

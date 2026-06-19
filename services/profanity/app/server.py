@@ -7,15 +7,23 @@ from profanity.v1 import profanity_pb2 as pb
 from profanity.v1 import profanity_pb2_grpc as pb_grpc
 from app.config import settings
 from app.batcher import Batcher
+from app import gemini
 
 
 class ProfanityService(pb_grpc.ProfanityServiceServicer):
     def __init__(self, batcher: Batcher):
         self.batcher = batcher
 
-    async def Analyze(self, request, context):
+    async def AnalyzeText(self, request, context):
         probas = await self.batcher.submit(request.text)
-        return pb.AnalyzeResponse(probas=probas)
+        return pb.AnalyzeTextResponse(probas=probas)
+
+    async def AnalyzeImage(self, request, context):
+        try:
+            profanity_check = await asyncio.to_thread(gemini.analyze_image, request.url)
+        except Exception as e:
+            await context.abort(grpc.StatusCode.INTERNAL, f"análisis de imagen falló: {e}")
+        return pb.AnalyzeImageResponse(profanity_check=profanity_check)
 
 
 async def serve():

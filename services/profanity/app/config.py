@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     max_delay: float = 0.25
     max_workers: int = 4
 
+    # Análisis de imágenes con Gemini
+    gemini_model: str = "gemini-2.5-flash"
+    gemini_fallback_model: str = "gemini-2.5-flash-lite"
+    http_timeout: float = 15.0
+
     class Config:
         env_file = ".env"
 
