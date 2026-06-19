@@ -76,7 +76,7 @@ curl -s -X POST localhost:8080/v1/profanity \
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-# -> {"image":{"forbidden":true}}
+# -> {"image":{"blocked":true,"reason":"sensible conversation capture"}}
 ```
 
 **Texto + imagen** (ambos campos): se analizan en paralelo y la respuesta combina los dos resultados:
@@ -85,14 +85,14 @@ curl -s -X POST localhost:8080/v1/profanity \
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"text":"eres un idiota","url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06},"image":{"forbidden":true}}
+# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06},"image":{"blocked":true,"reason":"sensible conversation capture"}}
 ```
 
 Regla de enrutado en el gateway:
 
 - Solo **`text`** → `AnalyzeText` → `{"text": {...}}`.
-- Solo **`url`** → `AnalyzeImage` → `{"image": {"forbidden": bool}}`.
-- **Ambos** → `AnalyzeText` + `AnalyzeImage` en paralelo → `{"text": {...}, "image": {"forbidden": bool}}`.
+- Solo **`url`** → `AnalyzeImage` → `{"image": {"blocked": bool, "reason": "sensible conversation capture"}}` (reason solo si `blocked` es `true`).
+- **Ambos** → `AnalyzeText` + `AnalyzeImage` en paralelo → `{"text": {...}, "image": {"blocked": bool, ...}}`.
 
 ### Directo por gRPC (para depurar)
 
@@ -114,12 +114,12 @@ grpcurl -plaintext -d '{"url":"https://.../img.jpg"}' \
 
 `app/gemini.py`:
 
-1. Obtiene los bytes de la imagen según la URL:
-   - **S3** (`s3://bucket/clave` o `https://...amazonaws.com/...`) → descarga con **boto3** usando credenciales AWS (ver más abajo). Sirve para buckets privados.
-   - **Cualquier otra URL** (pública o presignada) → descarga con `httpx` (sigue redirects, timeout `http_timeout`).
+1. Descarga los bytes de la imagen con **httpx** (sigue redirects, timeout `http_timeout`). La URL debe ser accesible por HTTP/HTTPS (pública o presignada).
 2. Determina el mime-type por la cabecera `Content-Type`, con fallback por extensión y a `image/jpeg`.
 3. Llama a Gemini (`gemini_model`, con fallback a `gemini_fallback_model`) pasando los bytes y la `SYSTEM_INSTRUCTION`, con `temperature=0`.
 4. Parsea la respuesta: empieza por `true` → `True`, por `false` → `False`. Cualquier otra cosa es error.
+
+> **Nota:** la descarga vía boto3/S3 privado está desactivada por ahora. Usa URLs HTTPS públicas o presignadas.
 
 > **Pendiente:** la constante `SYSTEM_INSTRUCTION` en `app/gemini.py` es un **placeholder** (`TODO(usuario)`). Debe forzar que el modelo responda **exactamente** `true` o `false`. Sustitúyela por la instrucción definitiva.
 
@@ -140,11 +140,6 @@ Variables (vía entorno o `.env`; `app/config.py`):
 | `GEMINI_FALLBACK_MODEL` | `gemini-2.5-flash-lite` | Modelo de respaldo |
 | `HTTP_TIMEOUT` | `15.0` | Timeout (s) de descarga de imagen por HTTP |
 | `GEMINI_API_KEY` | — | **Obligatoria para imágenes.** La lee el cliente `google-genai` |
-| `AWS_REGION` | — | Región de S3 (solo para imágenes en bucket privado vía boto3) |
-| `AWS_ACCESS_KEY_ID` | — | Credencial AWS para S3 privado. La lee boto3 |
-| `AWS_SECRET_ACCESS_KEY` | — | Credencial AWS para S3 privado. La lee boto3 |
-
-> **Credenciales S3:** solo se necesitan si las URLs apuntan a un bucket privado (`s3://...` o `https://...amazonaws.com/...`). Para URLs presignadas o públicas no hace falta nada de AWS. boto3 también acepta rol IAM de la instancia o `~/.aws/credentials` (cadena de credenciales estándar).
 
 ---
 

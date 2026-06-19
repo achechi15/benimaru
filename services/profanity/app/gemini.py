@@ -1,7 +1,6 @@
 import mimetypes
-from urllib.parse import unquote, urlparse
 
-import boto3
+# import boto3
 import httpx
 from dotenv import load_dotenv
 from google import genai
@@ -15,7 +14,6 @@ load_dotenv()
 # servicio arranque aunque falte GEMINI_API_KEY (el texto sigue funcionando).
 # El cliente de genai lee GEMINI_API_KEY del entorno automáticamente.
 _client: genai.Client | None = None
-_s3 = None
 
 
 def _get_client() -> genai.Client:
@@ -25,49 +23,63 @@ def _get_client() -> genai.Client:
     return _client
 
 
-def _get_s3():
-    """Cliente boto3 S3 perezoso.
-
-    Las credenciales se toman de la cadena estándar de boto3:
-    variables de entorno (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY /
-    AWS_REGION), rol IAM de la instancia o ~/.aws/credentials.
-    """
-    global _s3
-    if _s3 is None:
-        kwargs = {}
-        if settings.aws_region:
-            kwargs["region_name"] = settings.aws_region
-        _s3 = boto3.client("s3", **kwargs)
-    return _s3
-
-
-def _parse_s3_url(url: str) -> tuple[str, str] | None:
-    """Devuelve (bucket, key) si la url apunta a S3, o None si no lo es.
-
-    Soporta:
-      - s3://bucket/clave
-      - https://bucket.s3.region.amazonaws.com/clave  (virtual-hosted)
-      - https://s3.region.amazonaws.com/bucket/clave   (path-style)
-    """
-    parsed = urlparse(url)
-
-    if parsed.scheme == "s3":
-        return parsed.netloc, parsed.path.lstrip("/")
-
-    host = parsed.hostname or ""
-    if not host.endswith("amazonaws.com"):
-        return None
-
-    key = unquote(parsed.path.lstrip("/"))
-    labels = host.split(".")
-    # Virtual-hosted: <bucket>.s3(.region).amazonaws.com
-    if "s3" in labels and labels[0] != "s3":
-        return labels[0], key
-    # Path-style: s3(.region).amazonaws.com/<bucket>/<clave>
-    if key:
-        bucket, _, rest = key.partition("/")
-        return bucket, rest
-    return None
+# --- S3 vía boto3 (desactivado por ahora; descarga exclusivamente con httpx) ---
+# _s3 = None
+#
+#
+# def _get_s3():
+#     """Cliente boto3 S3 perezoso.
+#
+#     Las credenciales se toman de la cadena estándar de boto3:
+#     variables de entorno (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY /
+#     AWS_REGION), rol IAM de la instancia o ~/.aws/credentials.
+#     """
+#     global _s3
+#     if _s3 is None:
+#         kwargs = {}
+#         if settings.aws_region:
+#             kwargs["region_name"] = settings.aws_region
+#         _s3 = boto3.client("s3", **kwargs)
+#     return _s3
+#
+#
+# def _parse_s3_url(url: str) -> tuple[str, str] | None:
+#     """Devuelve (bucket, key) si la url apunta a S3, o None si no lo es.
+#
+#     Soporta:
+#       - s3://bucket/clave
+#       - https://bucket.s3.region.amazonaws.com/clave  (virtual-hosted)
+#       - https://s3.region.amazonaws.com/bucket/clave   (path-style)
+#     """
+#     from urllib.parse import unquote, urlparse
+#
+#     parsed = urlparse(url)
+#
+#     if parsed.scheme == "s3":
+#         return parsed.netloc, parsed.path.lstrip("/")
+#
+#     host = parsed.hostname or ""
+#     if not host.endswith("amazonaws.com"):
+#         return None
+#
+#     key = unquote(parsed.path.lstrip("/"))
+#     labels = host.split(".")
+#     if "s3" in labels and labels[0] != "s3":
+#         return labels[0], key
+#     if key:
+#         bucket, _, rest = key.partition("/")
+#         return bucket, rest
+#     return None
+#
+#
+# def _download_from_s3(bucket: str, key: str) -> tuple[bytes, str]:
+#     obj = _get_s3().get_object(Bucket=bucket, Key=key)
+#     data = obj["Body"].read()
+#     mime = (obj.get("ContentType") or "").split(";")[0].strip()
+#     if not mime.startswith("image/"):
+#         guessed, _ = mimetypes.guess_type(key)
+#         mime = guessed or "image/jpeg"
+#     return data, mime
 
 # TODO(usuario): reemplazar por la system instruction definitiva.
 # Debe forzar que el modelo responda EXACTAMENTE "true" o "false" para que
@@ -89,20 +101,7 @@ SYSTEM_INSTRUCTION = (
 
 
 def _download_image(url: str) -> tuple[bytes, str]:
-    s3_ref = _parse_s3_url(url)
-    if s3_ref is not None:
-        return _download_from_s3(*s3_ref)
     return _download_http(url)
-
-
-def _download_from_s3(bucket: str, key: str) -> tuple[bytes, str]:
-    obj = _get_s3().get_object(Bucket=bucket, Key=key)
-    data = obj["Body"].read()
-    mime = (obj.get("ContentType") or "").split(";")[0].strip()
-    if not mime.startswith("image/"):
-        guessed, _ = mimetypes.guess_type(key)
-        mime = guessed or "image/jpeg"
-    return data, mime
 
 
 def _download_http(url: str) -> tuple[bytes, str]:

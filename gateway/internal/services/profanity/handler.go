@@ -23,6 +23,12 @@ type incomingReq struct {
 }
 
 const cacheTTL = 24 * time.Hour
+const imageBlockReason = "sensible conversation capture"
+
+type imageResponse struct {
+	Blocked bool   `json:"blocked"`
+	Reason  string `json:"reason,omitempty"`
+}
 
 func Builder(u upstream.Upstream, _ time.Duration) (http.Handler, error) {
 	conn, err := grpc.NewClient(u.Target, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -109,7 +115,7 @@ func Builder(u upstream.Upstream, _ time.Duration) (http.Handler, error) {
 			return
 		}
 
-		// Respuesta siempre envuelta: {"text": {...}} y/o {"image": {"forbidden": bool}}.
+		// Respuesta siempre envuelta: {"text": {...}} y/o {"image": {"blocked": bool, "reason": "..."}}.
 		out := make(map[string]json.RawMessage, 2)
 		if hasText {
 			out["text"] = textOut
@@ -150,7 +156,7 @@ func analyze(ctx context.Context, client profanityv1.ProfanityServiceClient, cac
 }
 
 func analyzeImage(ctx context.Context, client profanityv1.ProfanityServiceClient, cache valkey.Client, url string) ([]byte, error) {
-	cacheKey := "img:forbidden:" + url
+	cacheKey := "img:blocked:" + url
 	if cache != nil {
 		if val, err := cache.Do(ctx, cache.B().Get().Key(cacheKey).Build()).ToString(); err == nil {
 			return []byte(val), nil // hit
@@ -161,7 +167,7 @@ func analyzeImage(ctx context.Context, client profanityv1.ProfanityServiceClient
 	if err != nil {
 		return nil, err
 	}
-	out, err := json.Marshal(map[string]bool{"forbidden": resp.GetProfanityCheck()})
+	out, err := json.Marshal(buildImageResponse(resp.GetProfanityCheck()))
 	if err != nil {
 		return nil, err
 	}
@@ -170,4 +176,12 @@ func analyzeImage(ctx context.Context, client profanityv1.ProfanityServiceClient
 		_ = cache.Do(ctx, cache.B().Set().Key(cacheKey).Value(string(out)).Ex(cacheTTL).Build()).Error()
 	}
 	return out, nil
+}
+
+func buildImageResponse(blocked bool) imageResponse {
+	img := imageResponse{Blocked: blocked}
+	if blocked {
+		img.Reason = imageBlockReason
+	}
+	return img
 }

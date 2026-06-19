@@ -91,8 +91,8 @@ El handler ([`internal/services/profanity/handler.go`](internal/services/profani
 La respuesta va **siempre envuelta** bajo las claves `text` y/o `image`:
 
 - Solo **`text`** → `AnalyzeText`. Respuesta: `{"text": {<label>: <proba>, ...}}`.
-- Solo **`url`** → `AnalyzeImage` (Gemini). Respuesta: `{"image": {"forbidden": bool}}`.
-- **Ambos** → se analizan **en paralelo**: `{"text": {...}, "image": {"forbidden": bool}}`.
+- Solo **`url`** → `AnalyzeImage` (Gemini). Respuesta: `{"image": {"blocked": bool, "reason": "sensible conversation capture"}}` (reason solo si `blocked` es `true`).
+- **Ambos** → se analizan **en paralelo**: `{"text": {...}, "image": {"blocked": bool, ...}}`.
 
 **Texto:**
 
@@ -109,7 +109,7 @@ curl -s -X POST localhost:8080/v1/profanity \
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-# -> {"image":{"forbidden":true}}
+# -> {"image":{"blocked":true,"reason":"sensible conversation capture"}}
 ```
 
 **Texto + imagen:**
@@ -118,14 +118,14 @@ curl -s -X POST localhost:8080/v1/profanity \
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"text":"eres un idiota","url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06},"image":{"forbidden":true}}
+# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06},"image":{"blocked":true,"reason":"sensible conversation capture"}}
 ```
 
 | Cuerpo | Rama | gRPC | Respuesta |
 |---|---|---|---|
 | `{"text":"..."}` | texto | `AnalyzeText` | `{"text": {<label>: <proba>, ...}}` |
-| `{"url":"..."}` | imagen | `AnalyzeImage` | `{"image": {"forbidden": bool}}` |
-| `{"text":"...","url":"..."}` | ambos (paralelo) | `AnalyzeText` + `AnalyzeImage` | `{"text": {...}, "image": {"forbidden": bool}}` |
+| `{"url":"..."}` | imagen | `AnalyzeImage` | `{"image": {"blocked": bool, "reason": "..."}}` |
+| `{"text":"...","url":"..."}` | ambos (paralelo) | `AnalyzeText` + `AnalyzeImage` | `{"text": {...}, "image": {"blocked": bool, ...}}` |
 
 Solo se acepta **POST**; otro método → `405`. JSON inválido → `400`. Falta `text` y `url` → `400`. Error del backend gRPC → `502`.
 
