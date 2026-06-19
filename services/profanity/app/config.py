@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     gemini_fallback_model: str = "gemini-2.5-flash-lite"
     http_timeout: float = 15.0
 
+    # S3 (solo para AnalyzeImage con bucket privado vía boto3).
+    # Las credenciales las toma boto3 del entorno / rol IAM.
+    aws_region: str | None = None
+
     class Config:
         env_file = ".env"
 

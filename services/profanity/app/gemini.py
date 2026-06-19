@@ -1,5 +1,7 @@
 import mimetypes
+from urllib.parse import unquote, urlparse
 
+import boto3
 import httpx
 from dotenv import load_dotenv
 from google import genai
@@ -9,10 +11,11 @@ from app.config import settings
 
 load_dotenv()
 
-# Inicialización perezosa: NO construimos el cliente al importar para que el
+# Inicialización perezosa: NO construimos los clientes al importar para que el
 # servicio arranque aunque falte GEMINI_API_KEY (el texto sigue funcionando).
-# El cliente lee GEMINI_API_KEY del entorno automáticamente.
+# El cliente de genai lee GEMINI_API_KEY del entorno automáticamente.
 _client: genai.Client | None = None
+_s3 = None
 
 
 def _get_client() -> genai.Client:
@@ -20,6 +23,51 @@ def _get_client() -> genai.Client:
     if _client is None:
         _client = genai.Client()
     return _client
+
+
+def _get_s3():
+    """Cliente boto3 S3 perezoso.
+
+    Las credenciales se toman de la cadena estándar de boto3:
+    variables de entorno (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY /
+    AWS_REGION), rol IAM de la instancia o ~/.aws/credentials.
+    """
+    global _s3
+    if _s3 is None:
+        kwargs = {}
+        if settings.aws_region:
+            kwargs["region_name"] = settings.aws_region
+        _s3 = boto3.client("s3", **kwargs)
+    return _s3
+
+
+def _parse_s3_url(url: str) -> tuple[str, str] | None:
+    """Devuelve (bucket, key) si la url apunta a S3, o None si no lo es.
+
+    Soporta:
+      - s3://bucket/clave
+      - https://bucket.s3.region.amazonaws.com/clave  (virtual-hosted)
+      - https://s3.region.amazonaws.com/bucket/clave   (path-style)
+    """
+    parsed = urlparse(url)
+
+    if parsed.scheme == "s3":
+        return parsed.netloc, parsed.path.lstrip("/")
+
+    host = parsed.hostname or ""
+    if not host.endswith("amazonaws.com"):
+        return None
+
+    key = unquote(parsed.path.lstrip("/"))
+    labels = host.split(".")
+    # Virtual-hosted: <bucket>.s3(.region).amazonaws.com
+    if "s3" in labels and labels[0] != "s3":
+        return labels[0], key
+    # Path-style: s3(.region).amazonaws.com/<bucket>/<clave>
+    if key:
+        bucket, _, rest = key.partition("/")
+        return bucket, rest
+    return None
 
 # TODO(usuario): reemplazar por la system instruction definitiva.
 # Debe forzar que el modelo responda EXACTAMENTE "true" o "false" para que
@@ -41,6 +89,23 @@ SYSTEM_INSTRUCTION = (
 
 
 def _download_image(url: str) -> tuple[bytes, str]:
+    s3_ref = _parse_s3_url(url)
+    if s3_ref is not None:
+        return _download_from_s3(*s3_ref)
+    return _download_http(url)
+
+
+def _download_from_s3(bucket: str, key: str) -> tuple[bytes, str]:
+    obj = _get_s3().get_object(Bucket=bucket, Key=key)
+    data = obj["Body"].read()
+    mime = (obj.get("ContentType") or "").split(";")[0].strip()
+    if not mime.startswith("image/"):
+        guessed, _ = mimetypes.guess_type(key)
+        mime = guessed or "image/jpeg"
+    return data, mime
+
+
+def _download_http(url: str) -> tuple[bytes, str]:
     with httpx.Client(timeout=settings.http_timeout, follow_redirects=True) as http:
         resp = http.get(url)
         resp.raise_for_status()

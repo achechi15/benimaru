@@ -59,18 +59,15 @@ message AnalyzeImageResponse { bool profanity_check = 1; }
 
 ### A través del gateway (forma habitual)
 
+La respuesta va **siempre envuelta** bajo las claves `text` y/o `image`.
+
 **Texto** (campo `text`):
 
 ```bash
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"text":"eres un idiota"}'
-```
-
-Respuesta (mapa de probabilidades de `pysentimiento`):
-
-```json
-{ "NEG": 0.91, "NEU": 0.07, "POS": 0.02 }
+# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06}}
 ```
 
 **Imagen** (campo `url`):
@@ -79,12 +76,7 @@ Respuesta (mapa de probabilidades de `pysentimiento`):
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-```
-
-Respuesta:
-
-```json
-{ "profanity_check": true }
+# -> {"image":{"forbidden":true}}
 ```
 
 **Texto + imagen** (ambos campos): se analizan en paralelo y la respuesta combina los dos resultados:
@@ -93,14 +85,14 @@ Respuesta:
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"text":"eres un idiota","url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-# -> {"text":{"NEG":0.91,"NEU":0.07,"POS":0.02},"image":{"profanity_check":true}}
+# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06},"image":{"forbidden":true}}
 ```
 
 Regla de enrutado en el gateway:
 
-- Solo **`text`** → `AnalyzeText` (mapa de probabilidades).
-- Solo **`url`** → `AnalyzeImage` (`{"profanity_check": bool}`).
-- **Ambos** → `AnalyzeText` + `AnalyzeImage` en paralelo → `{"text": {...}, "image": {...}}`.
+- Solo **`text`** → `AnalyzeText` → `{"text": {...}}`.
+- Solo **`url`** → `AnalyzeImage` → `{"image": {"forbidden": bool}}`.
+- **Ambos** → `AnalyzeText` + `AnalyzeImage` en paralelo → `{"text": {...}, "image": {"forbidden": bool}}`.
 
 ### Directo por gRPC (para depurar)
 
@@ -122,7 +114,9 @@ grpcurl -plaintext -d '{"url":"https://.../img.jpg"}' \
 
 `app/gemini.py`:
 
-1. Descarga la imagen con `httpx` (sigue redirects, timeout `http_timeout`). **Se asume que la URL es accesible** (pública o presignada). Si el bucket es privado habría que añadir credenciales AWS.
+1. Obtiene los bytes de la imagen según la URL:
+   - **S3** (`s3://bucket/clave` o `https://...amazonaws.com/...`) → descarga con **boto3** usando credenciales AWS (ver más abajo). Sirve para buckets privados.
+   - **Cualquier otra URL** (pública o presignada) → descarga con `httpx` (sigue redirects, timeout `http_timeout`).
 2. Determina el mime-type por la cabecera `Content-Type`, con fallback por extensión y a `image/jpeg`.
 3. Llama a Gemini (`gemini_model`, con fallback a `gemini_fallback_model`) pasando los bytes y la `SYSTEM_INSTRUCTION`, con `temperature=0`.
 4. Parsea la respuesta: empieza por `true` → `True`, por `false` → `False`. Cualquier otra cosa es error.
@@ -144,8 +138,13 @@ Variables (vía entorno o `.env`; `app/config.py`):
 | `MAX_WORKERS` | `4` | Hilos del pool de inferencia de texto |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Modelo Gemini para imágenes |
 | `GEMINI_FALLBACK_MODEL` | `gemini-2.5-flash-lite` | Modelo de respaldo |
-| `HTTP_TIMEOUT` | `15.0` | Timeout (s) de descarga de imagen |
+| `HTTP_TIMEOUT` | `15.0` | Timeout (s) de descarga de imagen por HTTP |
 | `GEMINI_API_KEY` | — | **Obligatoria para imágenes.** La lee el cliente `google-genai` |
+| `AWS_REGION` | — | Región de S3 (solo para imágenes en bucket privado vía boto3) |
+| `AWS_ACCESS_KEY_ID` | — | Credencial AWS para S3 privado. La lee boto3 |
+| `AWS_SECRET_ACCESS_KEY` | — | Credencial AWS para S3 privado. La lee boto3 |
+
+> **Credenciales S3:** solo se necesitan si las URLs apuntan a un bucket privado (`s3://...` o `https://...amazonaws.com/...`). Para URLs presignadas o públicas no hace falta nada de AWS. boto3 también acepta rol IAM de la instancia o `~/.aws/credentials` (cadena de credenciales estándar).
 
 ---
 

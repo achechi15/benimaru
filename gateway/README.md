@@ -88,9 +88,11 @@ Responde `202 {"status":"accepted","id":"123"}`; el resultado llega luego por ca
 
 El handler ([`internal/services/profanity/handler.go`](internal/services/profanity/handler.go)) decide la rama según los campos presentes en el cuerpo:
 
-- Solo **`text`** → `AnalyzeText`. Respuesta: mapa de probabilidades.
-- Solo **`url`** → `AnalyzeImage` (Gemini). Respuesta: `{"profanity_check": bool}`.
-- **Ambos** → se analizan **en paralelo** y la respuesta los combina en `{"text": ..., "image": ...}`.
+La respuesta va **siempre envuelta** bajo las claves `text` y/o `image`:
+
+- Solo **`text`** → `AnalyzeText`. Respuesta: `{"text": {<label>: <proba>, ...}}`.
+- Solo **`url`** → `AnalyzeImage` (Gemini). Respuesta: `{"image": {"forbidden": bool}}`.
+- **Ambos** → se analizan **en paralelo**: `{"text": {...}, "image": {"forbidden": bool}}`.
 
 **Texto:**
 
@@ -98,7 +100,7 @@ El handler ([`internal/services/profanity/handler.go`](internal/services/profani
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"text":"eres un idiota"}'
-# -> {"NEG":0.91,"NEU":0.07,"POS":0.02}
+# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06}}
 ```
 
 **Imagen:**
@@ -107,7 +109,7 @@ curl -s -X POST localhost:8080/v1/profanity \
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-# -> {"profanity_check":true}
+# -> {"image":{"forbidden":true}}
 ```
 
 **Texto + imagen:**
@@ -116,14 +118,14 @@ curl -s -X POST localhost:8080/v1/profanity \
 curl -s -X POST localhost:8080/v1/profanity \
   -H 'content-type: application/json' \
   -d '{"text":"eres un idiota","url":"https://mi-bucket.s3.amazonaws.com/img/123.jpg"}'
-# -> {"text":{"NEG":0.91,"NEU":0.07,"POS":0.02},"image":{"profanity_check":true}}
+# -> {"text":{"NEG":0.86,"NEU":0.08,"POS":0.06},"image":{"forbidden":true}}
 ```
 
 | Cuerpo | Rama | gRPC | Respuesta |
 |---|---|---|---|
-| `{"text":"..."}` | texto | `AnalyzeText` | `{ "<label>": <proba>, ... }` |
-| `{"url":"..."}` | imagen | `AnalyzeImage` | `{"profanity_check": bool}` |
-| `{"text":"...","url":"..."}` | ambos (paralelo) | `AnalyzeText` + `AnalyzeImage` | `{"text": {...}, "image": {"profanity_check": bool}}` |
+| `{"text":"..."}` | texto | `AnalyzeText` | `{"text": {<label>: <proba>, ...}}` |
+| `{"url":"..."}` | imagen | `AnalyzeImage` | `{"image": {"forbidden": bool}}` |
+| `{"text":"...","url":"..."}` | ambos (paralelo) | `AnalyzeText` + `AnalyzeImage` | `{"text": {...}, "image": {"forbidden": bool}}` |
 
 Solo se acepta **POST**; otro método → `405`. JSON inválido → `400`. Falta `text` y `url` → `400`. Error del backend gRPC → `502`.
 

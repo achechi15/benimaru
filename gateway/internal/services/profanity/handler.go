@@ -83,32 +83,23 @@ func Builder(u upstream.Upstream, _ time.Duration) (http.Handler, error) {
 			return v.([]byte), nil
 		}
 
-		// Solo uno de los dos: respuesta directa (forma simple).
-		if hasText != hasURL {
-			run := runText
-			if hasURL {
-				run = runImage
-			}
-			out, err := run()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadGateway)
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write(out)
-			return
-		}
-
-		// Ambos: se analizan en paralelo y se combinan en {text, image}.
+		// Texto y/o imagen. Si vienen los dos, se resuelven en paralelo.
 		var (
 			textOut, imgOut []byte
 			textErr, imgErr error
-			wg              sync.WaitGroup
 		)
-		wg.Add(2)
-		go func() { defer wg.Done(); textOut, textErr = runText() }()
-		go func() { defer wg.Done(); imgOut, imgErr = runImage() }()
-		wg.Wait()
+		switch {
+		case hasText && hasURL:
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go func() { defer wg.Done(); textOut, textErr = runText() }()
+			go func() { defer wg.Done(); imgOut, imgErr = runImage() }()
+			wg.Wait()
+		case hasText:
+			textOut, textErr = runText()
+		default:
+			imgOut, imgErr = runImage()
+		}
 		if textErr != nil {
 			http.Error(w, textErr.Error(), http.StatusBadGateway)
 			return
@@ -118,16 +109,21 @@ func Builder(u upstream.Upstream, _ time.Duration) (http.Handler, error) {
 			return
 		}
 
-		combined, err := json.Marshal(map[string]json.RawMessage{
-			"text":  textOut,
-			"image": imgOut,
-		})
+		// Respuesta siempre envuelta: {"text": {...}} y/o {"image": {"forbidden": bool}}.
+		out := make(map[string]json.RawMessage, 2)
+		if hasText {
+			out["text"] = textOut
+		}
+		if hasURL {
+			out["image"] = imgOut
+		}
+		resp, err := json.Marshal(out)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(combined)
+		_, _ = w.Write(resp)
 	}), nil
 }
 
@@ -154,7 +150,7 @@ func analyze(ctx context.Context, client profanityv1.ProfanityServiceClient, cac
 }
 
 func analyzeImage(ctx context.Context, client profanityv1.ProfanityServiceClient, cache valkey.Client, url string) ([]byte, error) {
-	cacheKey := "img:" + url
+	cacheKey := "img:forbidden:" + url
 	if cache != nil {
 		if val, err := cache.Do(ctx, cache.B().Get().Key(cacheKey).Build()).ToString(); err == nil {
 			return []byte(val), nil // hit
@@ -165,7 +161,7 @@ func analyzeImage(ctx context.Context, client profanityv1.ProfanityServiceClient
 	if err != nil {
 		return nil, err
 	}
-	out, err := json.Marshal(map[string]bool{"profanity_check": resp.GetProfanityCheck()})
+	out, err := json.Marshal(map[string]bool{"forbidden": resp.GetProfanityCheck()})
 	if err != nil {
 		return nil, err
 	}

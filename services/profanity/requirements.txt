@@ -6,3 +6,4 @@ pydantic-settings
 google-genai
 httpx
 python-dotenv
+boto3
