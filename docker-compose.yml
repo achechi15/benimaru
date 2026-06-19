@@ -1,8 +1,8 @@
 # Levanta toda la plataforma:  docker compose up --build
-
-# Variables (opcional) en un .env junto a este fichero:
-#   LLAMA_MODEL=mi-modelo.gguf      # nombre del .gguf dentro de ./models
-#   CALLBACK_URL=https://...        # destino del callback de metapod
+#
+# Variables: copia la plantilla y rellénala ->  cp .env.example .env
+# El .env se carga automáticamente para sustituir ${VAR} y se inyecta en los
+# contenedores vía 'env_file' (marcado required:false, así arranca sin .env).
 
 services:
   llama:
@@ -15,6 +15,9 @@ services:
   metapod:
     build:
       context: ./services/metapod
+    env_file:
+      - path: .env
+        required: false
     environment:
       PYTHONUNBUFFERED: "1"
       GRPC_ADDR: "0.0.0.0:50051"
@@ -28,6 +31,9 @@ services:
   profanity:
     build:
       context: ./services/profanity
+    env_file:
+      - path: .env
+        required: false
     environment:
       PYTHONUNBUFFERED: "1"
       GRPC_ADDR: "0.0.0.0:50052"
@@ -37,6 +43,9 @@ services:
   gateway:
     build:
       context: ./gateway
+    env_file:
+      - path: .env
+        required: false
     environment:
       GATEWAY_ADDR: ":8080"
       GATEWAY_PROXY_TIMEOUT: "10s"
@@ -45,7 +54,7 @@ services:
         [{"name":"metapod","prefix":"/v1/metapod","target":"metapod:50051"},
          {"name":"flowmetapod","prefix":"/flow/metapod","target":"metapod:50051"},
          {"name":"profanity","prefix":"/v1/profanity","target":"profanity:50052"}]
-      # GATEWAY_API_KEY: "tu-clave"
+      GATEWAY_API_KEY: "${GATEWAY_API_KEY:-}"
     ports:
       - "8080:8080"
     depends_on:
