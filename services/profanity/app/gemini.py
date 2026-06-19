@@ -9,17 +9,34 @@ from app.config import settings
 
 load_dotenv()
 
+# Inicialización perezosa: NO construimos el cliente al importar para que el
+# servicio arranque aunque falte GEMINI_API_KEY (el texto sigue funcionando).
 # El cliente lee GEMINI_API_KEY del entorno automáticamente.
-client = genai.Client()
+_client: genai.Client | None = None
+
+
+def _get_client() -> genai.Client:
+    global _client
+    if _client is None:
+        _client = genai.Client()
+    return _client
 
 # TODO(usuario): reemplazar por la system instruction definitiva.
 # Debe forzar que el modelo responda EXACTAMENTE "true" o "false" para que
 # _parse_bool pueda interpretar la respuesta de forma fiable.
 SYSTEM_INSTRUCTION = (
-    "PLACEHOLDER pendiente de definir por el usuario. "
-    "Analiza la imagen y responde únicamente con 'true' si contiene contenido "
-    "profano o inapropiado, o 'false' en caso contrario. "
-    "No incluyas ningún otro texto, explicación ni puntuación."
+    """
+    Eres un clasificador visual binario estricto. Tu única tarea es analizar la imagen proporcionada y determinar si es una captura de pantalla de un chat de WhatsApp (en cualquiera de sus versiones: Android, iOS, WhatsApp Web o Escritorio).
+
+    Analiza los elementos característicos como la disposición de los globos de texto, iconos de llamada/videollamada, barra de entrada de texto, estados de lectura (checks azules/grises) o la interfaz típica de la aplicación.
+
+    Sigue estas reglas con un 100% de rigurosidad:
+    - Responde exclusivamente con el dígito true si la imagen ES una captura de pantalla de un chat de WhatsApp.
+    - Responde exclusivamente con el dígito false si la imagen NO es una captura de pantalla de un chat de WhatsApp (esto incluye fotos normales, capturas de interfaz de otras apps como Telegram, Instagram, Signal, o cualquier otro contenido).
+    - NO incluyas introducciones, explicaciones, justificaciones ni puntuación.
+    - NO uses formato Markdown (no agregues negritas, ni bloques de código).
+    - Tu salida final debe contener exactamente un carácter.
+    """
 )
 
 
@@ -55,6 +72,7 @@ def analyze_image(url: str) -> bool:
     )
     contents = [types.Part.from_bytes(data=data, mime_type=mime)]
 
+    client = _get_client()
     last_err: Exception | None = None
     for model in (settings.gemini_model, settings.gemini_fallback_model):
         try:

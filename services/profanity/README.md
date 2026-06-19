@@ -175,10 +175,19 @@ python -m app.server             # gRPC en :50052
 Los stubs Python (`profanity/v1/*_pb2*.py`) y Go (en el gateway) se generan desde el `.proto`. Tras editar `profanity.proto`:
 
 ```bash
-cd api
 # Go (gateway)
-buf generate
-# Python (este servicio) con un template temporal de plugins Python
+cd api && buf generate
+
+# Python (este servicio): usar grpcio-tools, NO el plugin remoto de buf.
+# Así el "gencode" coincide con el runtime de protobuf instalado en el
+# contenedor (si no, falla con VersionError gencode/runtime).
+cd ..
+python -m grpc_tools.protoc -I api/proto \
+  --python_out services/profanity \
+  --grpc_python_out services/profanity \
+  api/proto/profanity/v1/profanity.proto
 ```
 
-Ver el [README raíz](../../README.md) y `api/buf.gen.yaml`.
+> Importante: genera los stubs Python con la misma versión de `protobuf` que
+> queda instalada por `requirements.txt` (hoy `6.33.x`). El plugin remoto de
+> buf produce un gencode más nuevo (7.x) incompatible con ese runtime.
